@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI QR Scam Simulator - With Scanner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .warning {
+            background: #ff4444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .qr-box {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .qr-image {
+            max-width: 250px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .qr-image img {
+            width: 100%;
+            height: auto;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .badge-red {
+            background: #ff4444;
+            color: white;
+        }
+        
+        .badge-green {
+            background: #00C851;
+            color: white;
+        }
+        
+        .badge-yellow {
+            background: #ffbb33;
+            color: black;
+        }
+        
+        .badge-blue {
+            background: #33b5e5;
+            color: white;
+        }
+        
+        /* Scanner Styles */
+        .scanner-container {
+            background: #1a1a1a;
+            border-radius: 30px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 3px solid #00ff00;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scanner-header {
+            background: #333;
+            color: #00ff00;
+            padding: 10px 20px;
+            border-radius: 15px 15px 0 0;
+            font-family: monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .scanner-viewport {
+            background: #000;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
+        
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #00ff00;
+            animation: scan 2s linear infinite;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+        
+        .scan-corner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #00ff00;
+        }
+        
+        .corner-tl {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+        
+        .corner-tr {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+        }
+        
+        .corner-bl {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+        }
+        
+        .corner-br {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }
+        
+        .scan-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            z-index: 10;
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+        }
+        
+        .scan-result {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid #00ff00;
+        }
+        
+        /* Phone Screen Simulation */
+        .phone-screen {
+            background: #1a1a1a;
+            border-radius: 30px;
+            padding: 15px;
+            border: 3px solid #333;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+        
+        .phone-notch {
+            background: #333;
+            width: 150px;
+            height: 25px;
+            border-radius: 0 0 20px 20px;
+            margin: -15px auto 15px;
+        }
+        
+        .phone-content {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 400px;
+        }
+        
+        .app-header {
+            background: #6200ee;
+            color: white;
+            padding: 15px;
+            border-radius: 15px 15px 0 0;
+            margin: -20px -20px 20px -20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .transaction-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .transaction-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .transaction-value {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .amount-large {
+            font-size: 2em;
+            font-weight: bold;
+            color: #6200ee;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .pin-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ddd;
+        }
+        
+        .dot.filled {
+            background: #6200ee;
+        }
+        
+        .pin-button {
+            background: #6200ee;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .deceptive-highlight {
+            background: #e8f5e8;
+            padding: 10px;
+            border-left: 4px solid #00C851;
+            margin: 10px 0;
+        }
+        
+        .truth-highlight {
+            background: #ffebee;
+            padding: 10px;
+            border-left: 4px solid #ff4444;
+            margin: 10px 0;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .tech-box {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        button {
+            background: #6200ee;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(98,0,238,0.4);
+        }
+        
+        .btn-red {
+            background: #d32f2f;
+        }
+        
+        .btn-green {
+            background: #00C851;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        input, select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .attacker-card {
+            background: #fff0f0;
+            border: 2px solid #ff4444;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .step {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 5px;
+            border-left: 3px solid #ff9800;
+        }
+        
+        .flex-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📱 UPI QR Scam Simulator</h1>
+            <p>See how victims are tricked into paying instead of receiving</p>
+            
+        </header>
+        
+        <!-- Attacker Configuration -->
+        <div class="panel">
+            <h2>👤 Attacker Setup</h2>
+            <div class="attacker-card">
+                <div class="grid-2">
+                    <div>
+                        <div class="input-group">
+                            <label><strong>Attacker UPI ID:</strong></label>
+                            <input type="text" id="attacker-vpa" value="5653216548@okhdfcbank" placeholder="UPI ID">
+                        </div>
+                        <div class="input-group">
+                            <label><strong>Amount (₹):</strong></label>
+                            <input type="number" id="attack-amount" value="2000">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="input-group">
+                            <label><strong>Scam Type:</strong></label>
+                            <select id="scam-type">
+                                <option value="refund">🛍️ Amazon Refund</option>
+                                <option value="salary">💼 Salary Credit</option>
+                                <option value="cashback">🎁 Cashback Reward</option>
+                                <option value="prize">🏆 Lottery Prize</option>
+                                <option value="payment">💰 Payment Received</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button id="generate-btn" class="btn-red">🔴 Generate Scam QR Code</button>
+            </div>
+        </div>
+        
+        <!-- Main Demo Area -->
+        <div class="grid-2">
+            <!-- Left Side: QR Code -->
+            <div class="panel">
+                <h2>📷 Scam QR Code</h2>
+                <div class="qr-box">
+                    <div id="qr-image" class="qr-image">
+                        <p style="color: #999; padding: 50px;">Click Generate to create QR</p>
+                    </div>
+                    <p><strong>Attacker's QR Code</strong> - Looks innocent but contains payment instruction</p>
+                </div>
+                
+                <!-- UPI Link (Technical) -->
+                <div id="upi-link" class="tech-box" style="display: none;"></div>
+            </div>
+            
+            <!-- Right Side: Scanner Simulation -->
+            <div class="panel">
+                <h2>📱 Scanner Simulation</h2>
+                <div class="scanner-container">
+                    <div class="scanner-header">
+                        <span>🔍 UPI Scanner</span>
+                        <span id="scanner-status">Ready to scan</span>
+                    </div>
+                    <div class="scanner-viewport" id="scanner-viewport">
+                        <div class="scan-line"></div>
+                        <div class="scan-corner corner-tl"></div>
+                        <div class="scan-corner corner-tr"></div>
+                        <div class="scan-corner corner-bl"></div>
+                        <div class="scan-corner corner-br"></div>
+                        <div class="scan-overlay" id="scan-overlay">
+                            <p>📷 Position QR code in frame</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-row">
+                    <button id="scan-btn" class="btn-green" disabled>🔍 Scan QR Code</button>
+                    <button id="reset-scanner-btn">🔄 Reset</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scan Result (Shown after scanning) -->
+        <div class="panel" id="scan-result-panel" style="display: none;">
+            <h2>📲 Scan Result - UPI App Opens</h2>
+            
+            <div class="grid-2">
+                <!-- What Victim SEES (Deception) -->
+                <div>
+                    <div class="phone-screen">
+                        <div class="phone-notch"></div>
+                        <div class="phone-content">
+                            <div class="app-header">📱 UPI Payment</div>
+                            
+                            <div class="deceptive-highlight">
+                                <strong>🤔 What Victim THINKS is happening:</strong>
+                            </div>
+                            
+                            <div id="victim-thinking" class="transaction-row">
+                                <!-- Filled by JS -->
+                            </div>
+                            
+                            <div class="amount-large" id="thinking-amount">₹2000</div>
+                            
+                            <div class="transaction-row">
+                                <span class="transaction-label">From</span>
+                                <span class="transaction-value" id="thinking-from">Amazon India</span>
+                            </div>
+                            
+                            <div class="transaction-row">
+                                <span class="transaction-label">Note</span>
+                                <span class="transaction-value" id="thinking-note">Refund for order</span>
+                            </div>
+                            
+                            <div class="transaction-row">
+                                <span class="transaction-label">Action</span>
+                                <span class="transaction-value" style="color: #00C851;" id="thinking-action">Enter PIN to receive</span>
+                            </div>
+                            
+                            <div class="pin-dots">
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                            </div>
+                            
+                            <button class="pin-button" id="fake-pin-btn" onclick="simulatePinEntry()">Enter PIN</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- What ACTUALLY Happens (Truth) -->
+                <div>
+                    <div class="phone-screen">
+                        <div class="phone-notch"></div>
+                        <div class="phone-content">
+                            <div class="app-header" style="background: #d32f2f;">⚠️ UPI Payment</div>
+                            
+                            <div class="truth-highlight">
+                                <strong>🔴 What ACTUALLY happens:</strong>
+                            </div>
+                            
+                            <div id="actual-truth" class="transaction-row">
+                                <!-- Filled by JS -->
+                            </div>
+                            
+                            <div class="amount-large" id="actual-amount">₹2000</div>
+                            
+                            <div class="transaction-row">
+                                <span class="transaction-label">Paying to</span>
+                                <span class="transaction-value" id="actual-payee">5653216548@okhdfcbank</span>
+                            </div>
+                            
+                            <div class="transaction-row">
+                                <span class="transaction-label">Type</span>
+                                <span class="transaction-value" style="color: #d32f2f;" id="actual-type">PAYMENT (Sending Money)</span>
+                            </div>
+                            
+                            <div class="transaction-row">
+                                <span class="transaction-label">Action</span>
+                                <span class="transaction-value" style="color: #d32f2f;" id="actual-action">Enter PIN to SEND</span>
+                            </div>
+                            
+                            <div class="pin-dots">
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                            </div>
+                            
+                            <button class="pin-button" style="background: #d32f2f;" id="real-pin-btn" onclick="completeScam()">Enter PIN</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scam Result -->
+        <div class="panel" id="result-panel" style="display: none;">
+            <div id="scam-result" class="danger-box">
+                <h3>⚠️ SCAM EXECUTED</h3>
+                <p id="scam-message"></p>
+            </div>
+        </div>
+        
+        <!-- Attack Explanation -->
+        <div class="panel">
+            <h2>🎯 How This Scam Works</h2>
+            <div class="grid-3">
+                <div class="step">1️⃣ Attacker creates QR with payment instruction to their UPI ID</div>
+                <div class="step">2️⃣ QR contains misleading "From" field showing trusted name (Amazon)</div>
+                <div class="step">3️⃣ Victim scans QR expecting to RECEIVE money</div>
+                <div class="step">4️⃣ UPI app opens showing payment screen - but victim misreads it</div>
+                <div class="step">5️⃣ Victim sees "From: Amazon" and thinks "I'm getting refund"</div>
+                <div class="step">6️⃣ Victim enters PIN to "accept" - actually AUTHORIZES payment</div>
+                <div class="step">7️⃣ ❌ Money is DEBITED from victim's account to attacker</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentQRData = null;
+        
+        document.getElementById('generate-btn').addEventListener('click', generateQR);
+        document.getElementById('scan-btn').addEventListener('click', simulateScan);
+        document.getElementById('reset-scanner-btn').addEventListener('click', resetScanner);
+        
+        async function generateQR() {
+            const attackerVpa = document.getElementById('attacker-vpa').value;
+            const amount = document.getElementById('attack-amount').value;
+            const scamType = document.getElementById('scam-type').value;
+            
+            try {
+                const response = await fetch('/api/generate-scam-qr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        attacker_vpa: attackerVpa,
+                        amount: parseInt(amount),
+                        scam_type: scamType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store QR data
+                    currentQRData = data;
+                    
+                    // Display QR code
+                    document.getElementById('qr-image').innerHTML = `
+                        <img src="data:image/png;base64,${data.qr_image}" alt="Scam QR">
+                    `;
+                    
+                    // Show UPI link
+                    document.getElementById('upi-link').style.display = 'block';
+                    document.getElementById('upi-link').innerHTML = `
+                        <strong>UPI Link:</strong> ${data.upi_link}
+                    `;
+                    
+                    // Enable scan button
+                    document.getElementById('scan-btn').disabled = false;
+                    
+                    // Update scanner status
+                    document.getElementById('scanner-status').innerHTML = '✅ QR generated';
+                    document.getElementById('scan-overlay').innerHTML = '<p>📷 Click "Scan QR Code" to simulate scanning</p>';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating QR');
+            }
+        }
+        
+        function simulateScan() {
+            if (!currentQRData) return;
+            
+            // Update scanner status
+            document.getElementById('scanner-status').innerHTML = '🔍 Scanning...';
+            document.getElementById('scan-overlay').innerHTML = '<p>📷 Scanning QR code...</p>';
+            
+            // Simulate scan delay
+            setTimeout(() => {
+                document.getElementById('scanner-status').innerHTML = '✅ QR Detected!';
+                document.getElementById('scan-overlay').innerHTML = '<p>✅ QR Code Scanned Successfully!</p>';
+                
+                // Show scan result panel
+                document.getElementById('scan-result-panel').style.display = 'block';
+                
+                // Update victim thinking based on scam type
+                const scamType = document.getElementById('scam-type').value;
+                const amount = document.getElementById('attack-amount').value;
+                
+                let fromText = "Amazon India";
+                let noteText = "Refund for order #OD12345";
+                let actionText = "Enter PIN to receive";
+                
+                if (scamType === "salary") {
+                    fromText = "Salary Account";
+                    noteText = "Salary credit for February 2026";
+                } else if (scamType === "cashback") {
+                    fromText = "Cashback Reward";
+                    noteText = "Cashback from recent purchase";
+                } else if (scamType === "prize") {
+                    fromText = "Lottery Department";
+                    noteText = "Prize money - Congratulations!";
+                } else if (scamType === "payment") {
+                    fromText = "Customer Payment";
+                    noteText = "Payment received for services";
+                }
+                
+                document.getElementById('thinking-from').textContent = fromText;
+                document.getElementById('thinking-note').textContent = noteText;
+                document.getElementById('thinking-action').textContent = actionText;
+                document.getElementById('thinking-amount').textContent = `₹${amount}`;
+                
+                // Update actual truth
+                document.getElementById('actual-payee').textContent = currentQRData.attacker.vpa;
+                document.getElementById('actual-amount').textContent = `₹${amount}`;
+                document.getElementById('actual-type').textContent = "PAYMENT (Sending Money)";
+                document.getElementById('actual-action').textContent = "Enter PIN to SEND";
+                
+                // Scroll to result
+                document.getElementById('scan-result-panel').scrollIntoView({ behavior: 'smooth' });
+                
+            }, 1500);
+        }
+        
+        function simulatePinEntry() {
+            // Victim thinks they're entering PIN to receive money
+            document.getElementById('fake-pin-btn').textContent = '✓ Processing...';
+            document.getElementById('fake-pin-btn').disabled = true;
+            
+            setTimeout(() => {
+                document.getElementById('result-panel').style.display = 'block';
+                document.getElementById('scam-message').innerHTML = `
+                    <strong>🔴 VICTIM ENTERED PIN</strong><br><br>
+                    They thought: "I'm entering PIN to receive ₹${currentQRData.attacker.amount}"<br>
+                    <strong>ACTUAL RESULT: ₹${currentQRData.attacker.amount} DEBITED from victim's account</strong><br>
+                    Money sent to: ${currentQRData.attacker.vpa}<br><br>
+                    <span style="color: #d32f2f; font-size: 1.2em;">SCAM SUCCESSFUL - VICTIM LOST MONEY</span>
+                `;
+                
+                // Also update real pin button
+                document.getElementById('real-pin-btn').textContent = '✓ PIN Entered';
+                document.getElementById('real-pin-btn').disabled = true;
+                
+                document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth' });
+                
+            }, 1000);
+        }
+        
+        function completeScam() {
+            // Alternative way to complete scam
+            simulatePinEntry();
+        }
+        
+        function resetScanner() {
+            document.getElementById('scanner-status').innerHTML = 'Ready to scan';
+            document.getElementById('scan-overlay').innerHTML = '<p>📷 Position QR code in frame</p>';
+            document.getElementById('scan-result-panel').style.display = 'none';
+            document.getElementById('result-panel').style.display = 'none';
+            document.getElementById('fake-pin-btn').textContent = 'Enter PIN';
+            document.getElementById('fake-pin-btn').disabled = false;
+            document.getElementById('real-pin-btn').textContent = 'Enter PIN';
+            document.getElementById('real-pin-btn').disabled = false;
+        }
+    </script>
+</body>
+</html>
